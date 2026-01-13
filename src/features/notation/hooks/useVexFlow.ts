@@ -2,11 +2,6 @@ import { useEffect, useRef, useCallback } from 'react';
 import { Renderer, Stave, StaveNote, Voice, Formatter, Accidental } from 'vexflow';
 import type { MusicalNote, Pitch, DurationValue, KeySignature, TimeSignature, Accidental as AccidentalType } from '../../../shared/types';
 
-interface NoteHighlight {
-  index: number;
-  color: 'yellow' | 'green';
-}
-
 interface UseVexFlowOptions {
   width: number;
   height: number;
