@@ -349,6 +349,365 @@ export const EXERCISES: Exercise[] = [
     positionConstraint: POSITIONS[0],
     tuning: STANDARD_TUNING,
   },
+
+  // ============================================
+  // SECOND POSITION EXERCISES (Frets 2-5)
+  // ============================================
+
+  // Exercise 11: Second Position - High E String
+  {
+    id: 'second-position-e',
+    title: 'Second Position - E String',
+    description: 'Notes on the high E string in 2nd position: F#, G, G#, A',
+    category: 'single-notes',
+    difficulty: 'intermediate',
+    timeSignature: { numerator: 4, denominator: 4 },
+    keySignature: { root: 'G', mode: 'major', sharps: 1, flats: 0 },
+    tempo: 60,
+    measures: [
+      {
+        id: 'm1',
+        notes: [
+          note('F', 4, 'quarter', 'sharp'),
+          note('G', 4, 'quarter'),
+          note('G', 4, 'quarter', 'sharp'),
+          note('A', 4, 'quarter'),
+        ],
+      },
+      {
+        id: 'm2',
+        notes: [
+          note('A', 4, 'quarter'),
+          note('G', 4, 'quarter'),
+          note('F', 4, 'quarter', 'sharp'),
+          note('G', 4, 'quarter'),
+        ],
+      },
+    ],
+    positionConstraint: POSITIONS[2], // Second Position
+    tuning: STANDARD_TUNING,
+  },
+
+  // Exercise 12: Second Position - B String
+  {
+    id: 'second-position-b',
+    title: 'Second Position - B String',
+    description: 'Notes on the B string in 2nd position: C#, D, D#, E',
+    category: 'single-notes',
+    difficulty: 'intermediate',
+    timeSignature: { numerator: 4, denominator: 4 },
+    keySignature: { root: 'D', mode: 'major', sharps: 2, flats: 0 },
+    tempo: 60,
+    measures: [
+      {
+        id: 'm1',
+        notes: [
+          note('C', 4, 'quarter', 'sharp'),
+          note('D', 4, 'quarter'),
+          note('D', 4, 'quarter', 'sharp'),
+          note('E', 4, 'quarter'),
+        ],
+      },
+      {
+        id: 'm2',
+        notes: [
+          note('E', 4, 'quarter'),
+          note('D', 4, 'quarter'),
+          note('C', 4, 'quarter', 'sharp'),
+          note('D', 4, 'quarter'),
+        ],
+      },
+    ],
+    positionConstraint: POSITIONS[2],
+    tuning: STANDARD_TUNING,
+  },
+
+  // Exercise 13: Second Position - G String
+  {
+    id: 'second-position-g',
+    title: 'Second Position - G String',
+    description: 'Notes on the G string in 2nd position: A, B, C',
+    category: 'single-notes',
+    difficulty: 'intermediate',
+    timeSignature: { numerator: 4, denominator: 4 },
+    keySignature: { root: 'C', mode: 'major', sharps: 0, flats: 0 },
+    tempo: 60,
+    measures: [
+      {
+        id: 'm1',
+        notes: [
+          note('A', 3, 'quarter'),
+          note('B', 3, 'quarter'),
+          note('C', 4, 'quarter'),
+          note('B', 3, 'quarter'),
+        ],
+      },
+      {
+        id: 'm2',
+        notes: [
+          note('A', 3, 'quarter'),
+          note('C', 4, 'quarter'),
+          note('B', 3, 'quarter'),
+          note('A', 3, 'quarter'),
+        ],
+      },
+    ],
+    positionConstraint: POSITIONS[2],
+    tuning: STANDARD_TUNING,
+  },
+
+  // Exercise 14: Second Position - D String
+  {
+    id: 'second-position-d',
+    title: 'Second Position - D String',
+    description: 'Notes on the D string in 2nd position: E, F, F#, G',
+    category: 'single-notes',
+    difficulty: 'intermediate',
+    timeSignature: { numerator: 4, denominator: 4 },
+    keySignature: { root: 'G', mode: 'major', sharps: 1, flats: 0 },
+    tempo: 60,
+    measures: [
+      {
+        id: 'm1',
+        notes: [
+          note('E', 3, 'quarter'),
+          note('F', 3, 'quarter'),
+          note('F', 3, 'quarter', 'sharp'),
+          note('G', 3, 'quarter'),
+        ],
+      },
+      {
+        id: 'm2',
+        notes: [
+          note('G', 3, 'quarter'),
+          note('F', 3, 'quarter', 'sharp'),
+          note('E', 3, 'quarter'),
+          note('F', 3, 'quarter'),
+        ],
+      },
+    ],
+    positionConstraint: POSITIONS[2],
+    tuning: STANDARD_TUNING,
+  },
+
+  // Exercise 15: A Major Scale - Second Position
+  {
+    id: 'a-major-scale-2nd',
+    title: 'A Major Scale (2nd Position)',
+    description: 'Practice the A major scale in second position',
+    category: 'scales',
+    difficulty: 'intermediate',
+    timeSignature: { numerator: 4, denominator: 4 },
+    keySignature: { root: 'A', mode: 'major', sharps: 3, flats: 0 },
+    tempo: 60,
+    measures: [
+      {
+        id: 'm1',
+        notes: [
+          note('A', 3, 'quarter'),
+          note('B', 3, 'quarter'),
+          note('C', 4, 'quarter', 'sharp'),
+          note('D', 4, 'quarter'),
+        ],
+      },
+      {
+        id: 'm2',
+        notes: [
+          note('E', 4, 'quarter'),
+          note('F', 4, 'quarter', 'sharp'),
+          note('G', 4, 'quarter', 'sharp'),
+          note('A', 4, 'quarter'),
+        ],
+      },
+    ],
+    positionConstraint: POSITIONS[2],
+    tuning: STANDARD_TUNING,
+  },
+
+  // Exercise 16: D Major Scale - Second Position
+  {
+    id: 'd-major-scale-2nd',
+    title: 'D Major Scale (2nd Position)',
+    description: 'Practice the D major scale in second position',
+    category: 'scales',
+    difficulty: 'intermediate',
+    timeSignature: { numerator: 4, denominator: 4 },
+    keySignature: { root: 'D', mode: 'major', sharps: 2, flats: 0 },
+    tempo: 60,
+    measures: [
+      {
+        id: 'm1',
+        notes: [
+          note('D', 3, 'quarter'),
+          note('E', 3, 'quarter'),
+          note('F', 3, 'quarter', 'sharp'),
+          note('G', 3, 'quarter'),
+        ],
+      },
+      {
+        id: 'm2',
+        notes: [
+          note('A', 3, 'quarter'),
+          note('B', 3, 'quarter'),
+          note('C', 4, 'quarter', 'sharp'),
+          note('D', 4, 'quarter'),
+        ],
+      },
+    ],
+    positionConstraint: POSITIONS[2],
+    tuning: STANDARD_TUNING,
+  },
+
+  // Exercise 17: Second Position - Two Strings Combined
+  {
+    id: 'second-position-e-b',
+    title: 'Second Position - E & B Strings',
+    description: 'Moving between high E and B strings in 2nd position',
+    category: 'single-notes',
+    difficulty: 'intermediate',
+    timeSignature: { numerator: 4, denominator: 4 },
+    keySignature: { root: 'D', mode: 'major', sharps: 2, flats: 0 },
+    tempo: 60,
+    measures: [
+      {
+        id: 'm1',
+        notes: [
+          note('F', 4, 'quarter', 'sharp'),
+          note('D', 4, 'quarter'),
+          note('G', 4, 'quarter'),
+          note('E', 4, 'quarter'),
+        ],
+      },
+      {
+        id: 'm2',
+        notes: [
+          note('A', 4, 'quarter'),
+          note('D', 4, 'quarter'),
+          note('F', 4, 'quarter', 'sharp'),
+          note('E', 4, 'quarter'),
+        ],
+      },
+    ],
+    positionConstraint: POSITIONS[2],
+    tuning: STANDARD_TUNING,
+  },
+
+  // Exercise 18: Second Position - Across Three Strings
+  {
+    id: 'second-position-three-strings',
+    title: 'Second Position - Three Strings',
+    description: 'Moving across E, B, and G strings in 2nd position',
+    category: 'single-notes',
+    difficulty: 'intermediate',
+    timeSignature: { numerator: 4, denominator: 4 },
+    keySignature: { root: 'G', mode: 'major', sharps: 1, flats: 0 },
+    tempo: 60,
+    measures: [
+      {
+        id: 'm1',
+        notes: [
+          note('A', 3, 'quarter'),
+          note('D', 4, 'quarter'),
+          note('G', 4, 'quarter'),
+          note('B', 3, 'quarter'),
+        ],
+      },
+      {
+        id: 'm2',
+        notes: [
+          note('C', 4, 'quarter'),
+          note('E', 4, 'quarter'),
+          note('A', 4, 'quarter'),
+          note('D', 4, 'quarter'),
+        ],
+      },
+    ],
+    positionConstraint: POSITIONS[2],
+    tuning: STANDARD_TUNING,
+  },
+
+  // Exercise 19: Second Position - Low Strings
+  {
+    id: 'second-position-low',
+    title: 'Second Position - Low Strings',
+    description: 'Notes on D, A, and E strings in 2nd position',
+    category: 'single-notes',
+    difficulty: 'intermediate',
+    timeSignature: { numerator: 4, denominator: 4 },
+    keySignature: { root: 'G', mode: 'major', sharps: 1, flats: 0 },
+    tempo: 60,
+    measures: [
+      {
+        id: 'm1',
+        notes: [
+          note('F', 2, 'quarter', 'sharp'),
+          note('G', 2, 'quarter'),
+          note('B', 2, 'quarter'),
+          note('C', 3, 'quarter'),
+        ],
+      },
+      {
+        id: 'm2',
+        notes: [
+          note('D', 3, 'quarter'),
+          note('E', 3, 'quarter'),
+          note('G', 3, 'quarter'),
+          note('F', 3, 'quarter', 'sharp'),
+        ],
+      },
+    ],
+    positionConstraint: POSITIONS[2],
+    tuning: STANDARD_TUNING,
+  },
+
+  // Exercise 20: Second Position Melody
+  {
+    id: 'second-position-melody',
+    title: 'Second Position Melody',
+    description: 'A simple melody using notes in 2nd position',
+    category: 'melodies',
+    difficulty: 'intermediate',
+    timeSignature: { numerator: 4, denominator: 4 },
+    keySignature: { root: 'D', mode: 'major', sharps: 2, flats: 0 },
+    tempo: 72,
+    measures: [
+      {
+        id: 'm1',
+        notes: [
+          note('D', 4, 'quarter'),
+          note('E', 4, 'quarter'),
+          note('F', 4, 'quarter', 'sharp'),
+          note('D', 4, 'quarter'),
+        ],
+      },
+      {
+        id: 'm2',
+        notes: [
+          note('A', 4, 'half'),
+          note('F', 4, 'quarter', 'sharp'),
+          note('E', 4, 'quarter'),
+        ],
+      },
+      {
+        id: 'm3',
+        notes: [
+          note('D', 4, 'quarter'),
+          note('C', 4, 'quarter', 'sharp'),
+          note('B', 3, 'quarter'),
+          note('A', 3, 'quarter'),
+        ],
+      },
+      {
+        id: 'm4',
+        notes: [
+          note('D', 4, 'half'),
+          note('D', 4, 'half'),
+        ],
+      },
+    ],
+    positionConstraint: POSITIONS[2],
+    tuning: STANDARD_TUNING,
+  },
 ];
 
 // Get exercise by ID

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="64" fill="#3b82f6"/>
+  <g fill="white">
+    <!-- Staff lines -->
+    <rect x="64" y="160" width="384" height="5"/>
+    <rect x="64" y="203" width="384" height="5"/>
+    <rect x="64" y="246" width="384" height="5"/>
+    <rect x="64" y="289" width="384" height="5"/>
+    <rect x="64" y="332" width="384" height="5"/>
+    <!-- Quarter note -->
+    <ellipse cx="270" cy="289" rx="38" ry="27" transform="rotate(-20 270 289)"/>
+    <rect x="298" y="155" width="10" height="140"/>
+    <!-- Treble clef simplified -->
+    <path d="M130 185 Q115 225 130 265 Q145 305 130 345 M130 240 Q160 225 145 195 Q130 165 115 195 Q100 225 130 240"
+          stroke="white" stroke-width="12" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>

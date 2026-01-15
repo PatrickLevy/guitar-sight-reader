@@ -7,6 +7,7 @@ interface HomePageProps {
 
 export function HomePage({ onSelectExercise }: HomePageProps) {
   const beginnerExercises = EXERCISES.filter((e) => e.difficulty === 'beginner');
+  const intermediateExercises = EXERCISES.filter((e) => e.difficulty === 'intermediate');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -35,10 +36,10 @@ export function HomePage({ onSelectExercise }: HomePageProps) {
           </ol>
         </div>
 
-        {/* Exercise list */}
+        {/* Beginner Exercises */}
         <section>
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
-            Beginner Exercises
+            Beginner Exercises (First Position)
           </h2>
           <div className="grid gap-4 md:grid-cols-2">
             {beginnerExercises.map((exercise) => (
@@ -51,16 +52,19 @@ export function HomePage({ onSelectExercise }: HomePageProps) {
           </div>
         </section>
 
-        {/* Coming soon */}
+        {/* Intermediate Exercises */}
         <section className="mt-12">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
-            Coming Soon
+            Intermediate Exercises (Second Position)
           </h2>
-          <div className="bg-gray-100 rounded-lg p-6 text-center text-gray-500">
-            <p>More exercises and difficulty levels</p>
-            <p className="text-sm mt-2">
-              Including intermediate and advanced exercises, scales, and full melodies
-            </p>
+          <div className="grid gap-4 md:grid-cols-2">
+            {intermediateExercises.map((exercise) => (
+              <ExerciseCard
+                key={exercise.id}
+                exercise={exercise}
+                onClick={() => onSelectExercise(exercise)}
+              />
+            ))}
           </div>
         </section>
       </main>
