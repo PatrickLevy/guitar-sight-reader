@@ -16,7 +16,7 @@ function App() {
   const [state, setState] = useState<AppState>({ screen: 'home' });
   const [maxAttempts, setMaxAttempts] = useState<number>(() => {
     const saved = localStorage.getItem(STORAGE_KEY_DIFFICULTY);
-    return saved ? Number(saved) : 50;
+    return saved ? Number(saved) : 100;
   });
 
   // Persist difficulty to localStorage

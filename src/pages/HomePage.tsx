@@ -63,8 +63,7 @@ export function HomePage({
                            focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value={0}>Don't mark wrong notes</option>
-                <option value={100}>Easy</option>
-                <option value={50}>Medium</option>
+                <option value={100}>Forgiving</option>
                 <option value={10}>Strict</option>
               </select>
               <p className="text-xs text-gray-500 mt-1">
