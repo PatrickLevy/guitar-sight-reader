@@ -1,5 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 
+const STORAGE_KEY_DEVICE = 'guitar-sight-reader-audio-device';
+
 type PermissionState = 'prompt' | 'granted' | 'denied';
 
 export interface AudioInputDevice {
@@ -27,9 +29,20 @@ export function useMicrophone(): UseMicrophoneReturn {
   const [permission, setPermission] = useState<PermissionState>('prompt');
   const [isListening, setIsListening] = useState(false);
   const [devices, setDevices] = useState<AudioInputDevice[]>([]);
-  const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(() => {
+    return localStorage.getItem(STORAGE_KEY_DEVICE);
+  });
   const [currentDeviceLabel, setCurrentDeviceLabel] = useState<string | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+
+  // Persist selected device to localStorage
+  useEffect(() => {
+    if (selectedDeviceId) {
+      localStorage.setItem(STORAGE_KEY_DEVICE, selectedDeviceId);
+    } else {
+      localStorage.removeItem(STORAGE_KEY_DEVICE);
+    }
+  }, [selectedDeviceId]);
 
   // Enumerate available audio input devices
   const refreshDevices = useCallback(async () => {

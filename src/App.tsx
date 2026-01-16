@@ -1,9 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { HomePage } from './pages/HomePage';
 import { CompletePage } from './pages/CompletePage';
 import { ExerciseView } from './features/exercises';
 import { useMicrophone } from './features/pitch-detection';
 import type { Exercise } from './shared/types';
+
+const STORAGE_KEY_DIFFICULTY = 'guitar-sight-reader-difficulty';
 
 type AppState =
   | { screen: 'home' }
@@ -12,7 +14,15 @@ type AppState =
 
 function App() {
   const [state, setState] = useState<AppState>({ screen: 'home' });
-  const [maxAttempts, setMaxAttempts] = useState<number>(50);
+  const [maxAttempts, setMaxAttempts] = useState<number>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY_DIFFICULTY);
+    return saved ? Number(saved) : 50;
+  });
+
+  // Persist difficulty to localStorage
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_DIFFICULTY, String(maxAttempts));
+  }, [maxAttempts]);
 
   // Audio state lifted to app level
   const {
