@@ -39,6 +39,17 @@ export function HomePage({
 
       {/* Main content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
+        {/* Instructions */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
+          <h2 className="font-semibold text-blue-800 mb-2">How it works</h2>
+          <ol className="list-decimal list-inside text-blue-700 text-sm space-y-1">
+            <li>Select your audio input below</li>
+            <li>Select an exercise</li>
+            <li>Play the notes shown on the staff on your guitar</li>
+            <li>The app will detect if you played the correct note</li>
+          </ol>
+        </div>
+
         {/* Audio Setup */}
         <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
           <h2 className="font-semibold text-gray-800 mb-4">Audio Setup</h2>
@@ -71,17 +82,6 @@ export function HomePage({
               </p>
             </div>
           </div>
-        </div>
-
-        {/* Instructions */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-8">
-          <h2 className="font-semibold text-blue-800 mb-2">How it works</h2>
-          <ol className="list-decimal list-inside text-blue-700 text-sm space-y-1">
-            <li>Select your audio input above and enable it</li>
-            <li>Select an exercise below</li>
-            <li>Play the notes shown on the staff on your guitar</li>
-            <li>The app will detect if you played the correct note</li>
-          </ol>
         </div>
 
         {/* Beginner Exercises */}
