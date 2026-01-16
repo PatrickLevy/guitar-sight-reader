@@ -12,6 +12,7 @@ type AppState =
 
 function App() {
   const [state, setState] = useState<AppState>({ screen: 'home' });
+  const [maxAttempts, setMaxAttempts] = useState<number>(3);
 
   // Audio state lifted to app level
   const {
@@ -64,6 +65,8 @@ function App() {
           devices={devices}
           selectedDeviceId={selectedDeviceId}
           onDeviceChange={setSelectedDeviceId}
+          maxAttempts={maxAttempts}
+          onMaxAttemptsChange={setMaxAttempts}
         />
       );
 
@@ -76,6 +79,7 @@ function App() {
           stream={stream}
           isListening={isListening}
           onToggleListening={isListening ? stopMicrophone : requestPermission}
+          maxAttempts={maxAttempts}
         />
       );
 

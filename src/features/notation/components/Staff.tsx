@@ -11,6 +11,7 @@ interface StaffProps {
   currentNoteIndex?: number;
   correctNotes?: Set<number>;
   incorrectNotes?: Set<number>;
+  attemptingNotes?: Set<number>;
 }
 
 export function Staff({
@@ -22,6 +23,7 @@ export function Staff({
   currentNoteIndex,
   correctNotes,
   incorrectNotes,
+  attemptingNotes,
 }: StaffProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -34,6 +36,7 @@ export function Staff({
     currentNoteIndex,
     correctNotes,
     incorrectNotes,
+    attemptingNotes,
   });
 
   return (

@@ -11,6 +11,7 @@ interface UseVexFlowOptions {
   currentNoteIndex?: number;
   correctNotes?: Set<number>;
   incorrectNotes?: Set<number>;
+  attemptingNotes?: Set<number>;
 }
 
 // Map duration to VexFlow duration string
@@ -117,17 +118,18 @@ export function useVexFlow(
         vexNote.addModifier(new Accidental(mapAccidental(pitch.accidental)));
       }
 
-      // Apply highlighting colors
+      // Apply highlighting colors based on note state
       if (options.correctNotes?.has(index)) {
         // Note was played correctly - green
         vexNote.setStyle({ fillStyle: '#22c55e', strokeStyle: '#22c55e' });
       } else if (options.incorrectNotes?.has(index)) {
-        // Note was played incorrectly - red
+        // Note was finalized as incorrect - red
         vexNote.setStyle({ fillStyle: '#ef4444', strokeStyle: '#ef4444' });
-      } else if (index === options.currentNoteIndex) {
-        // Current target note - yellow
-        vexNote.setStyle({ fillStyle: '#eab308', strokeStyle: '#eab308' });
+      } else if (options.attemptingNotes?.has(index)) {
+        // Note is being attempted (temporary wrong) - red
+        vexNote.setStyle({ fillStyle: '#ef4444', strokeStyle: '#ef4444' });
       }
+      // Current target note stays black (default) - highlight added separately
 
       return vexNote;
     });
@@ -139,6 +141,39 @@ export function useVexFlow(
     // Format and draw
     new Formatter().joinVoices([voice]).format([voice], staveWidth - 100);
     voice.draw(context, stave);
+
+    // Draw highlight around current note (after notes are rendered so we can get positions)
+    if (options.currentNoteIndex !== undefined &&
+        options.currentNoteIndex >= 0 &&
+        options.currentNoteIndex < vexNotes.length &&
+        !options.correctNotes?.has(options.currentNoteIndex) &&
+        !options.incorrectNotes?.has(options.currentNoteIndex)) {
+      const currentVexNote = vexNotes[options.currentNoteIndex];
+      const bbox = currentVexNote.getBoundingBox();
+
+      if (bbox) {
+        // Draw a rounded rectangle highlight behind/around the note
+        const padding = 6;
+        const svgContext = context as unknown as { svg: SVGSVGElement };
+
+        if (svgContext.svg) {
+          const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          rect.setAttribute('x', String(bbox.getX() - padding));
+          rect.setAttribute('y', String(bbox.getY() - padding));
+          rect.setAttribute('width', String(bbox.getW() + padding * 2));
+          rect.setAttribute('height', String(bbox.getH() + padding * 2));
+          rect.setAttribute('rx', '4');
+          rect.setAttribute('ry', '4');
+          rect.setAttribute('fill', '#fef08a'); // Yellow highlight background
+          rect.setAttribute('stroke', '#eab308'); // Yellow border
+          rect.setAttribute('stroke-width', '2');
+
+          // Insert at the beginning so it appears behind the notes
+          const svg = svgContext.svg;
+          svg.insertBefore(rect, svg.firstChild);
+        }
+      }
+    }
   }, [containerRef, notes, options]);
 
   useEffect(() => {

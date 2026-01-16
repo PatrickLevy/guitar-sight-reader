@@ -8,6 +8,8 @@ interface HomePageProps {
   devices: AudioInputDevice[];
   selectedDeviceId: string | null;
   onDeviceChange: (deviceId: string | null) => void;
+  maxAttempts: number;
+  onMaxAttemptsChange: (attempts: number) => void;
 }
 
 export function HomePage({
@@ -15,6 +17,8 @@ export function HomePage({
   devices,
   selectedDeviceId,
   onDeviceChange,
+  maxAttempts,
+  onMaxAttemptsChange,
 }: HomePageProps) {
   const beginnerExercises = EXERCISES.filter((e) => e.difficulty === 'beginner');
   const intermediateExercises = EXERCISES.filter((e) => e.difficulty === 'intermediate');
@@ -38,12 +42,38 @@ export function HomePage({
         {/* Audio Setup */}
         <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
           <h2 className="font-semibold text-gray-800 mb-4">Audio Setup</h2>
-          <AudioDeviceSelector
-            devices={devices}
-            selectedDeviceId={selectedDeviceId}
-            onDeviceChange={onDeviceChange}
-            disabled={false}
-          />
+          <div className="flex flex-col sm:flex-row gap-6">
+            <div className="flex-1">
+              <AudioDeviceSelector
+                devices={devices}
+                selectedDeviceId={selectedDeviceId}
+                onDeviceChange={onDeviceChange}
+                disabled={false}
+              />
+            </div>
+            <div className="flex-1">
+              <label htmlFor="max-attempts" className="block text-sm font-medium text-gray-700 mb-1">
+                Attempts per Note
+              </label>
+              <select
+                id="max-attempts"
+                value={maxAttempts}
+                onChange={(e) => onMaxAttemptsChange(Number(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm
+                           focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value={1}>1 attempt (strict)</option>
+                <option value={2}>2 attempts</option>
+                <option value={3}>3 attempts</option>
+                <option value={5}>5 attempts</option>
+                <option value={10}>10 attempts</option>
+                <option value={0}>Unlimited attempts</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                How many wrong notes before moving on
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Instructions */}

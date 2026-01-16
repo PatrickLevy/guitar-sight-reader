@@ -11,6 +11,7 @@ interface ExerciseViewProps {
   stream: MediaStream | null;
   isListening: boolean;
   onToggleListening: () => void;
+  maxAttempts: number;
 }
 
 export function ExerciseView({
@@ -20,6 +21,7 @@ export function ExerciseView({
   stream,
   isListening,
   onToggleListening,
+  maxAttempts,
 }: ExerciseViewProps) {
   const {
     currentNoteIndex,
@@ -37,23 +39,22 @@ export function ExerciseView({
   const { pitch, noteName, start, stop } = usePitchDetection();
 
   const [isCorrect, setIsCorrect] = useState<boolean | undefined>(undefined);
-  const [hasAnswered, setHasAnswered] = useState(false);
   const [correctNotes, setCorrectNotes] = useState<Set<number>>(new Set());
   const [incorrectNotes, setIncorrectNotes] = useState<Set<number>>(new Set());
+  const [attemptingNotes, setAttemptingNotes] = useState<Set<number>>(new Set());
+  const [currentAttempts, setCurrentAttempts] = useState(0);
   const [waitingForNewNote, setWaitingForNewNote] = useState(false);
-  const correctTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [noteFinalized, setNoteFinalized] = useState(false);
+  const advanceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevStreamRef = useRef<MediaStream | null>(null);
 
   // Start/restart pitch detection when stream changes
   useEffect(() => {
     if (stream && stream !== prevStreamRef.current) {
-      // Stop previous detection if any
       stop();
-      // Start with new stream
       start(stream);
       prevStreamRef.current = stream;
     } else if (!stream && prevStreamRef.current) {
-      // Stream was removed, stop detection
       stop();
       prevStreamRef.current = null;
     }
@@ -68,54 +69,81 @@ export function ExerciseView({
 
   // Check if the detected pitch matches the current note
   useEffect(() => {
-    // Don't check if waiting for silence between notes
-    if (!pitch || !currentNote || currentNote.pitch === 'rest' || hasAnswered || waitingForNewNote) {
+    if (!pitch || !currentNote || currentNote.pitch === 'rest' || waitingForNewNote || noteFinalized) {
       return;
     }
 
     const targetPitch = currentNote.pitch as Pitch;
     const correct = isPitchCorrect(pitch, targetPitch.frequency, 50);
 
-    if (!hasAnswered) {
-      if (correct) {
-        setIsCorrect(true);
-        setHasAnswered(true);
-        checkNote(pitch);
+    if (correct) {
+      // Clear any pending timeout
+      if (advanceTimeoutRef.current) {
+        clearTimeout(advanceTimeoutRef.current);
+        advanceTimeoutRef.current = null;
+      }
 
-        // Mark this note as correct
-        setCorrectNotes(prev => new Set(prev).add(currentNoteIndex));
+      setIsCorrect(true);
+      setNoteFinalized(true);
+      checkNote(pitch);
 
-        // Auto-advance after a short delay
-        correctTimeoutRef.current = setTimeout(() => {
-          nextNote();
-          setIsCorrect(undefined);
-          setHasAnswered(false);
-          setWaitingForNewNote(true);
-        }, 800);
-      } else {
-        // Wrong note detected - mark as incorrect and move on
-        setIsCorrect(false);
-        setHasAnswered(true);
+      // Mark as correct (remove from attempting if it was there)
+      setAttemptingNotes(prev => {
+        const next = new Set(prev);
+        next.delete(currentNoteIndex);
+        return next;
+      });
+      setCorrectNotes(prev => new Set(prev).add(currentNoteIndex));
 
-        // Mark this note as incorrect
+      // Auto-advance after a short delay
+      advanceTimeoutRef.current = setTimeout(() => {
+        nextNote();
+        setIsCorrect(undefined);
+        setCurrentAttempts(0);
+        setNoteFinalized(false);
+        setWaitingForNewNote(true);
+      }, 800);
+    } else {
+      // Wrong note detected
+      setIsCorrect(false);
+
+      // Mark as attempting (temporary red)
+      setAttemptingNotes(prev => new Set(prev).add(currentNoteIndex));
+
+      const newAttempts = currentAttempts + 1;
+      setCurrentAttempts(newAttempts);
+
+      // Check if max attempts reached (0 = unlimited)
+      if (maxAttempts > 0 && newAttempts >= maxAttempts) {
+        // Finalize as incorrect
+        setNoteFinalized(true);
+        setAttemptingNotes(prev => {
+          const next = new Set(prev);
+          next.delete(currentNoteIndex);
+          return next;
+        });
         setIncorrectNotes(prev => new Set(prev).add(currentNoteIndex));
 
         // Auto-advance after a short delay
-        correctTimeoutRef.current = setTimeout(() => {
+        advanceTimeoutRef.current = setTimeout(() => {
           nextNote();
           setIsCorrect(undefined);
-          setHasAnswered(false);
+          setCurrentAttempts(0);
+          setNoteFinalized(false);
           setWaitingForNewNote(true);
         }, 800);
+      } else {
+        // Wait for silence before accepting another attempt
+        setWaitingForNewNote(true);
       }
     }
-  }, [pitch, currentNote, currentNoteIndex, hasAnswered, waitingForNewNote, checkNote, nextNote]);
+  }, [pitch, currentNote, currentNoteIndex, waitingForNewNote, noteFinalized, currentAttempts, maxAttempts, checkNote, nextNote]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
-      if (correctTimeoutRef.current) {
-        clearTimeout(correctTimeoutRef.current);
+      if (advanceTimeoutRef.current) {
+        clearTimeout(advanceTimeoutRef.current);
       }
     };
   }, []);
@@ -129,17 +157,36 @@ export function ExerciseView({
   }, [isComplete, correctCount, totalNotes, onComplete, stop]);
 
   const handleSkip = useCallback(() => {
+    if (advanceTimeoutRef.current) {
+      clearTimeout(advanceTimeoutRef.current);
+      advanceTimeoutRef.current = null;
+    }
+    // Mark as incorrect when skipping
+    setAttemptingNotes(prev => {
+      const next = new Set(prev);
+      next.delete(currentNoteIndex);
+      return next;
+    });
+    setIncorrectNotes(prev => new Set(prev).add(currentNoteIndex));
     nextNote();
     setIsCorrect(undefined);
-    setHasAnswered(false);
-  }, [nextNote]);
+    setCurrentAttempts(0);
+    setNoteFinalized(false);
+    setWaitingForNewNote(false);
+  }, [nextNote, currentNoteIndex]);
 
   const handleReset = useCallback(() => {
+    if (advanceTimeoutRef.current) {
+      clearTimeout(advanceTimeoutRef.current);
+      advanceTimeoutRef.current = null;
+    }
     reset();
     setIsCorrect(undefined);
-    setHasAnswered(false);
     setCorrectNotes(new Set());
     setIncorrectNotes(new Set());
+    setAttemptingNotes(new Set());
+    setCurrentAttempts(0);
+    setNoteFinalized(false);
     setWaitingForNewNote(false);
   }, [reset]);
 
@@ -147,6 +194,11 @@ export function ExerciseView({
   const targetNoteName = currentNote && currentNote.pitch !== 'rest'
     ? `${(currentNote.pitch as Pitch).name}${(currentNote.pitch as Pitch).octave}`
     : undefined;
+
+  // Show attempts remaining
+  const attemptsDisplay = maxAttempts > 0
+    ? `Attempt ${currentAttempts + 1} of ${maxAttempts}`
+    : null;
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -163,7 +215,7 @@ export function ExerciseView({
             Back
           </button>
           <h1 className="text-xl font-bold text-gray-800">{exercise.title}</h1>
-          <div className="w-20" /> {/* Spacer for alignment */}
+          <div className="w-20" />
         </div>
 
         {/* Listening status and toggle */}
@@ -220,6 +272,7 @@ export function ExerciseView({
             currentNoteIndex={currentNoteIndex}
             correctNotes={correctNotes}
             incorrectNotes={incorrectNotes}
+            attemptingNotes={attemptingNotes}
             width={Math.min(800, window.innerWidth - 64)}
             height={180}
           />
@@ -233,6 +286,9 @@ export function ExerciseView({
             isCorrect={isCorrect}
             frequency={pitch}
           />
+          {attemptsDisplay && isListening && !noteFinalized && (
+            <p className="text-sm text-gray-500">{attemptsDisplay}</p>
+          )}
         </div>
 
         {/* Controls */}
