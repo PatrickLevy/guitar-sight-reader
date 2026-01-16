@@ -43,10 +43,12 @@ export function ExerciseView({
   const [incorrectNotes, setIncorrectNotes] = useState<Set<number>>(new Set());
   const [attemptingNotes, setAttemptingNotes] = useState<Set<number>>(new Set());
   const [currentAttempts, setCurrentAttempts] = useState(0);
-  const [waitingForNewNote, setWaitingForNewNote] = useState(false);
   const [noteFinalized, setNoteFinalized] = useState(false);
+  const [cooldownActive, setCooldownActive] = useState(false);
   const advanceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cooldownTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevStreamRef = useRef<MediaStream | null>(null);
+  const lastCorrectPitchRef = useRef<number | null>(null);
 
   // Start/restart pitch detection when stream changes
   useEffect(() => {
@@ -60,17 +62,26 @@ export function ExerciseView({
     }
   }, [stream, start, stop]);
 
-  // When pitch goes silent, we're ready to detect a new note
-  useEffect(() => {
-    if (pitch === null && waitingForNewNote) {
-      setWaitingForNewNote(false);
-    }
-  }, [pitch, waitingForNewNote]);
 
   // Check if the detected pitch matches the current note
   useEffect(() => {
-    if (!pitch || !currentNote || currentNote.pitch === 'rest' || waitingForNewNote || noteFinalized) {
+    if (!pitch || !currentNote || currentNote.pitch === 'rest' || noteFinalized) {
       return;
+    }
+
+    // During cooldown, only accept a significantly different pitch (new note being played)
+    if (cooldownActive && lastCorrectPitchRef.current) {
+      const pitchRatio = pitch / lastCorrectPitchRef.current;
+      // If pitch is within 20% of the last correct pitch, ignore it (same note still ringing)
+      if (pitchRatio > 0.8 && pitchRatio < 1.2) {
+        return;
+      }
+      // New pitch detected, end cooldown early
+      setCooldownActive(false);
+      if (cooldownTimeoutRef.current) {
+        clearTimeout(cooldownTimeoutRef.current);
+        cooldownTimeoutRef.current = null;
+      }
     }
 
     const targetPitch = currentNote.pitch as Pitch;
@@ -86,6 +97,7 @@ export function ExerciseView({
       setIsCorrect(true);
       setNoteFinalized(true);
       checkNote(pitch);
+      lastCorrectPitchRef.current = pitch;
 
       // Mark as correct (remove from attempting if it was there)
       setAttemptingNotes(prev => {
@@ -101,7 +113,12 @@ export function ExerciseView({
         setIsCorrect(undefined);
         setCurrentAttempts(0);
         setNoteFinalized(false);
-        setWaitingForNewNote(true);
+        // Start a short cooldown to prevent detecting the same note
+        setCooldownActive(true);
+        cooldownTimeoutRef.current = setTimeout(() => {
+          setCooldownActive(false);
+          lastCorrectPitchRef.current = null;
+        }, 150);
       }, 800);
     } else {
       // Wrong note detected
@@ -130,20 +147,30 @@ export function ExerciseView({
           setIsCorrect(undefined);
           setCurrentAttempts(0);
           setNoteFinalized(false);
-          setWaitingForNewNote(true);
+          // Start a short cooldown
+          setCooldownActive(true);
+          cooldownTimeoutRef.current = setTimeout(() => {
+            setCooldownActive(false);
+          }, 150);
         }, 800);
       } else {
-        // Wait for silence before accepting another attempt
-        setWaitingForNewNote(true);
+        // Short cooldown before accepting another attempt (prevents rapid-fire wrong detections)
+        setCooldownActive(true);
+        cooldownTimeoutRef.current = setTimeout(() => {
+          setCooldownActive(false);
+        }, 200);
       }
     }
-  }, [pitch, currentNote, currentNoteIndex, waitingForNewNote, noteFinalized, currentAttempts, maxAttempts, checkNote, nextNote]);
+  }, [pitch, currentNote, currentNoteIndex, cooldownActive, noteFinalized, currentAttempts, maxAttempts, checkNote, nextNote]);
 
-  // Cleanup timeout on unmount
+  // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
       if (advanceTimeoutRef.current) {
         clearTimeout(advanceTimeoutRef.current);
+      }
+      if (cooldownTimeoutRef.current) {
+        clearTimeout(cooldownTimeoutRef.current);
       }
     };
   }, []);
@@ -161,6 +188,10 @@ export function ExerciseView({
       clearTimeout(advanceTimeoutRef.current);
       advanceTimeoutRef.current = null;
     }
+    if (cooldownTimeoutRef.current) {
+      clearTimeout(cooldownTimeoutRef.current);
+      cooldownTimeoutRef.current = null;
+    }
     // Mark as incorrect when skipping
     setAttemptingNotes(prev => {
       const next = new Set(prev);
@@ -172,13 +203,18 @@ export function ExerciseView({
     setIsCorrect(undefined);
     setCurrentAttempts(0);
     setNoteFinalized(false);
-    setWaitingForNewNote(false);
+    setCooldownActive(false);
+    lastCorrectPitchRef.current = null;
   }, [nextNote, currentNoteIndex]);
 
   const handleReset = useCallback(() => {
     if (advanceTimeoutRef.current) {
       clearTimeout(advanceTimeoutRef.current);
       advanceTimeoutRef.current = null;
+    }
+    if (cooldownTimeoutRef.current) {
+      clearTimeout(cooldownTimeoutRef.current);
+      cooldownTimeoutRef.current = null;
     }
     reset();
     setIsCorrect(undefined);
@@ -187,7 +223,8 @@ export function ExerciseView({
     setAttemptingNotes(new Set());
     setCurrentAttempts(0);
     setNoteFinalized(false);
-    setWaitingForNewNote(false);
+    setCooldownActive(false);
+    lastCorrectPitchRef.current = null;
   }, [reset]);
 
   // Get target note name for display
