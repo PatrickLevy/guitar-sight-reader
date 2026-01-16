@@ -1,7 +1,7 @@
 import { useEffect, useCallback, useState, useRef } from 'react';
 import type { Exercise, Pitch } from '../../../shared/types';
 import { Staff } from '../../notation';
-import { PitchIndicator, MicrophoneButton, useMicrophone, usePitchDetection, isPitchCorrect } from '../../pitch-detection';
+import { PitchIndicator, MicrophoneButton, AudioDeviceSelector, useMicrophone, usePitchDetection, isPitchCorrect } from '../../pitch-detection';
 import { useExercise } from '../hooks/useExercise';
 
 interface ExerciseViewProps {
@@ -24,8 +24,19 @@ export function ExerciseView({ exercise, onComplete, onBack }: ExerciseViewProps
     progress,
   } = useExercise(exercise);
 
-  const { stream, permission, isListening, requestPermission, stopMicrophone, error } = useMicrophone();
-  const { pitch, noteName, isActive, start, stop } = usePitchDetection();
+  const {
+    stream,
+    permission,
+    isListening,
+    devices,
+    selectedDeviceId,
+    currentDeviceLabel,
+    setSelectedDeviceId,
+    requestPermission,
+    stopMicrophone,
+    error,
+  } = useMicrophone();
+  const { pitch, noteName, start, stop } = usePitchDetection();
 
   const [isCorrect, setIsCorrect] = useState<boolean | undefined>(undefined);
   const [hasAnswered, setHasAnswered] = useState(false);
@@ -33,13 +44,18 @@ export function ExerciseView({ exercise, onComplete, onBack }: ExerciseViewProps
   const [incorrectNotes, setIncorrectNotes] = useState<Set<number>>(new Set());
   const [waitingForNewNote, setWaitingForNewNote] = useState(false);
   const correctTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevStreamRef = useRef<MediaStream | null>(null);
 
-  // Start pitch detection when microphone stream is available
+  // Start/restart pitch detection when stream changes
   useEffect(() => {
-    if (stream && !isActive) {
+    if (stream && stream !== prevStreamRef.current) {
+      // Stop previous detection if any
+      stop();
+      // Start with new stream
       start(stream);
+      prevStreamRef.current = stream;
     }
-  }, [stream, isActive, start]);
+  }, [stream, start, stop]);
 
   // When pitch goes silent, we're ready to detect a new note
   useEffect(() => {
@@ -194,6 +210,19 @@ export function ExerciseView({ exercise, onComplete, onBack }: ExerciseViewProps
             isCorrect={isCorrect}
             frequency={pitch}
           />
+
+          {/* Audio device selector */}
+          <AudioDeviceSelector
+            devices={devices}
+            selectedDeviceId={selectedDeviceId}
+            onDeviceChange={setSelectedDeviceId}
+            disabled={false}
+          />
+          {isListening && currentDeviceLabel && (
+            <p className="text-sm text-gray-600">
+              Using: <span className="font-medium">{currentDeviceLabel}</span>
+            </p>
+          )}
 
           <MicrophoneButton
             isListening={isListening}

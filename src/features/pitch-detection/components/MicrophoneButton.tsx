@@ -12,10 +12,10 @@ export function MicrophoneButton({
   error,
 }: MicrophoneButtonProps) {
   const getButtonText = () => {
-    if (permission === 'denied') return 'Microphone Denied';
+    if (permission === 'denied') return 'Audio Access Denied';
     if (isListening) return 'Stop Listening';
     if (permission === 'granted') return 'Start Listening';
-    return 'Enable Microphone';
+    return 'Enable Audio Input';
   };
 
   const getButtonStyle = () => {

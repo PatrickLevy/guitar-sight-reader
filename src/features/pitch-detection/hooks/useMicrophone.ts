@@ -1,12 +1,22 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 type PermissionState = 'prompt' | 'granted' | 'denied';
+
+export interface AudioInputDevice {
+  deviceId: string;
+  label: string;
+}
 
 interface UseMicrophoneReturn {
   stream: MediaStream | null;
   error: string | null;
   permission: PermissionState;
   isListening: boolean;
+  devices: AudioInputDevice[];
+  selectedDeviceId: string | null;
+  currentDeviceLabel: string | null;
+  setSelectedDeviceId: (deviceId: string | null) => void;
+  refreshDevices: () => Promise<AudioInputDevice[]>;
   requestPermission: () => Promise<MediaStream | null>;
   stopMicrophone: () => void;
 }
@@ -16,36 +26,124 @@ export function useMicrophone(): UseMicrophoneReturn {
   const [error, setError] = useState<string | null>(null);
   const [permission, setPermission] = useState<PermissionState>('prompt');
   const [isListening, setIsListening] = useState(false);
+  const [devices, setDevices] = useState<AudioInputDevice[]>([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
+  const [currentDeviceLabel, setCurrentDeviceLabel] = useState<string | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+
+  // Enumerate available audio input devices
+  const refreshDevices = useCallback(async () => {
+    try {
+      const allDevices = await navigator.mediaDevices.enumerateDevices();
+      const audioInputs = allDevices
+        .filter((device) => device.kind === 'audioinput')
+        .map((device, index) => ({
+          deviceId: device.deviceId,
+          // Label may be empty if permission not granted yet
+          label: device.label || `Audio Input ${index + 1}`,
+        }));
+      setDevices(audioInputs);
+      return audioInputs;
+    } catch (err) {
+      console.error('Failed to enumerate devices:', err);
+      return [];
+    }
+  }, []);
+
+  // Listen for device changes (plug/unplug)
+  useEffect(() => {
+    refreshDevices();
+
+    const handleDeviceChange = () => {
+      refreshDevices();
+    };
+
+    navigator.mediaDevices.addEventListener('devicechange', handleDeviceChange);
+    return () => {
+      navigator.mediaDevices.removeEventListener('devicechange', handleDeviceChange);
+    };
+  }, [refreshDevices]);
+
+  const startStream = useCallback(async (deviceId: string | null): Promise<MediaStream | null> => {
+    // Stop any existing stream first
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+
+    // Build audio constraints optimized for musical instruments
+    const audioConstraints: MediaTrackConstraints = {
+      echoCancellation: false,
+      noiseSuppression: false,
+      autoGainControl: false,
+      sampleRate: 44100,
+    };
+
+    // If a specific device is selected, use it
+    if (deviceId) {
+      audioConstraints.deviceId = { exact: deviceId };
+    }
+
+    const mediaStream = await navigator.mediaDevices.getUserMedia({
+      audio: audioConstraints,
+    });
+
+    // Get the actual device being used
+    const audioTrack = mediaStream.getAudioTracks()[0];
+    const settings = audioTrack.getSettings();
+
+    // Find the device label
+    const allDevices = await navigator.mediaDevices.enumerateDevices();
+    const usedDevice = allDevices.find(d => d.deviceId === settings.deviceId);
+    setCurrentDeviceLabel(usedDevice?.label || 'Unknown Device');
+
+    streamRef.current = mediaStream;
+    setStream(mediaStream);
+
+    return mediaStream;
+  }, []);
 
   const requestPermission = useCallback(async (): Promise<MediaStream | null> => {
     try {
       setError(null);
 
-      // Request microphone with settings optimized for musical instruments
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: false, // We want raw audio
-          noiseSuppression: false, // Preserve musical detail
-          autoGainControl: false, // Consistent volume
-        },
-      });
+      const mediaStream = await startStream(selectedDeviceId);
 
-      streamRef.current = mediaStream;
-      setStream(mediaStream);
       setPermission('granted');
       setIsListening(true);
+
+      // Refresh devices to get proper labels now that we have permission
+      await refreshDevices();
 
       return mediaStream;
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : 'Microphone access denied';
+        err instanceof Error ? err.message : 'Audio input access denied';
       setError(errorMessage);
       setPermission('denied');
       setIsListening(false);
       return null;
     }
-  }, []);
+  }, [selectedDeviceId, startStream, refreshDevices]);
+
+  // When device selection changes while listening, restart with new device
+  const handleDeviceChange = useCallback(async (deviceId: string | null) => {
+    setSelectedDeviceId(deviceId);
+
+    // If currently listening, restart stream with new device
+    if (isListening) {
+      try {
+        setError(null);
+        await startStream(deviceId);
+        // Refresh devices in case labels changed
+        await refreshDevices();
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Failed to switch audio device';
+        setError(errorMessage);
+      }
+    }
+  }, [isListening, startStream, refreshDevices]);
 
   const stopMicrophone = useCallback(() => {
     if (streamRef.current) {
@@ -54,6 +152,7 @@ export function useMicrophone(): UseMicrophoneReturn {
     }
     setStream(null);
     setIsListening(false);
+    setCurrentDeviceLabel(null);
   }, []);
 
   return {
@@ -61,6 +160,11 @@ export function useMicrophone(): UseMicrophoneReturn {
     error,
     permission,
     isListening,
+    devices,
+    selectedDeviceId,
+    currentDeviceLabel,
+    setSelectedDeviceId: handleDeviceChange,
+    refreshDevices,
     requestPermission,
     stopMicrophone,
   };
