@@ -1,16 +1,26 @@
 import { useEffect, useCallback, useState, useRef } from 'react';
 import type { Exercise, Pitch } from '../../../shared/types';
 import { Staff } from '../../notation';
-import { PitchIndicator, MicrophoneButton, AudioDeviceSelector, useMicrophone, usePitchDetection, isPitchCorrect } from '../../pitch-detection';
+import { PitchIndicator, usePitchDetection, isPitchCorrect } from '../../pitch-detection';
 import { useExercise } from '../hooks/useExercise';
 
 interface ExerciseViewProps {
   exercise: Exercise;
   onComplete: (correctCount: number, totalNotes: number) => void;
   onBack: () => void;
+  stream: MediaStream | null;
+  isListening: boolean;
+  onToggleListening: () => void;
 }
 
-export function ExerciseView({ exercise, onComplete, onBack }: ExerciseViewProps) {
+export function ExerciseView({
+  exercise,
+  onComplete,
+  onBack,
+  stream,
+  isListening,
+  onToggleListening,
+}: ExerciseViewProps) {
   const {
     currentNoteIndex,
     currentNote,
@@ -24,18 +34,6 @@ export function ExerciseView({ exercise, onComplete, onBack }: ExerciseViewProps
     progress,
   } = useExercise(exercise);
 
-  const {
-    stream,
-    permission,
-    isListening,
-    devices,
-    selectedDeviceId,
-    currentDeviceLabel,
-    setSelectedDeviceId,
-    requestPermission,
-    stopMicrophone,
-    error,
-  } = useMicrophone();
   const { pitch, noteName, start, stop } = usePitchDetection();
 
   const [isCorrect, setIsCorrect] = useState<boolean | undefined>(undefined);
@@ -54,6 +52,10 @@ export function ExerciseView({ exercise, onComplete, onBack }: ExerciseViewProps
       // Start with new stream
       start(stream);
       prevStreamRef.current = stream;
+    } else if (!stream && prevStreamRef.current) {
+      // Stream was removed, stop detection
+      stop();
+      prevStreamRef.current = null;
     }
   }, [stream, start, stop]);
 
@@ -122,19 +124,9 @@ export function ExerciseView({ exercise, onComplete, onBack }: ExerciseViewProps
   useEffect(() => {
     if (isComplete) {
       stop();
-      stopMicrophone();
       onComplete(correctCount, totalNotes);
     }
-  }, [isComplete, correctCount, totalNotes, onComplete, stop, stopMicrophone]);
-
-  const handleMicrophoneToggle = useCallback(async () => {
-    if (isListening) {
-      stop();
-      stopMicrophone();
-    } else {
-      await requestPermission();
-    }
-  }, [isListening, stop, stopMicrophone, requestPermission]);
+  }, [isComplete, correctCount, totalNotes, onComplete, stop]);
 
   const handleSkip = useCallback(() => {
     nextNote();
@@ -174,6 +166,37 @@ export function ExerciseView({ exercise, onComplete, onBack }: ExerciseViewProps
           <div className="w-20" /> {/* Spacer for alignment */}
         </div>
 
+        {/* Listening status and toggle */}
+        <div className="flex justify-center mb-4">
+          <button
+            onClick={onToggleListening}
+            className={`px-6 py-3 rounded-full font-medium transition-colors flex items-center gap-2 ${
+              isListening
+                ? 'bg-red-500 hover:bg-red-600 text-white'
+                : 'bg-blue-500 hover:bg-blue-600 text-white'
+            }`}
+          >
+            {isListening ? (
+              <>
+                <span className="animate-pulse w-2 h-2 bg-white rounded-full" />
+                Listening - Click to Stop
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                  />
+                </svg>
+                Start Listening
+              </>
+            )}
+          </button>
+        </div>
+
         {/* Progress bar */}
         <div className="mb-6">
           <div className="flex justify-between text-sm text-gray-600 mb-1">
@@ -202,33 +225,13 @@ export function ExerciseView({ exercise, onComplete, onBack }: ExerciseViewProps
           />
         </div>
 
-        {/* Pitch detection */}
-        <div className="flex flex-col items-center gap-6 mb-6">
+        {/* Pitch detection feedback */}
+        <div className="flex flex-col items-center gap-4 mb-6">
           <PitchIndicator
             detectedNote={noteName}
             targetNote={targetNoteName}
             isCorrect={isCorrect}
             frequency={pitch}
-          />
-
-          {/* Audio device selector */}
-          <AudioDeviceSelector
-            devices={devices}
-            selectedDeviceId={selectedDeviceId}
-            onDeviceChange={setSelectedDeviceId}
-            disabled={false}
-          />
-          {isListening && currentDeviceLabel && (
-            <p className="text-sm text-gray-600">
-              Using: <span className="font-medium">{currentDeviceLabel}</span>
-            </p>
-          )}
-
-          <MicrophoneButton
-            isListening={isListening}
-            permission={permission}
-            onToggle={handleMicrophoneToggle}
-            error={error}
           />
         </div>
 

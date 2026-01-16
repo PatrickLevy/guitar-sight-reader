@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { HomePage } from './pages/HomePage';
 import { CompletePage } from './pages/CompletePage';
 import { ExerciseView } from './features/exercises';
+import { useMicrophone } from './features/pitch-detection';
 import type { Exercise } from './shared/types';
 
 type AppState =
@@ -11,6 +12,17 @@ type AppState =
 
 function App() {
   const [state, setState] = useState<AppState>({ screen: 'home' });
+
+  // Audio state lifted to app level
+  const {
+    stream,
+    isListening,
+    devices,
+    selectedDeviceId,
+    setSelectedDeviceId,
+    requestPermission,
+    stopMicrophone,
+  } = useMicrophone();
 
   const handleSelectExercise = useCallback((exercise: Exercise) => {
     setState({ screen: 'exercise', exercise });
@@ -46,7 +58,14 @@ function App() {
 
   switch (state.screen) {
     case 'home':
-      return <HomePage onSelectExercise={handleSelectExercise} />;
+      return (
+        <HomePage
+          onSelectExercise={handleSelectExercise}
+          devices={devices}
+          selectedDeviceId={selectedDeviceId}
+          onDeviceChange={setSelectedDeviceId}
+        />
+      );
 
     case 'exercise':
       return (
@@ -54,6 +73,9 @@ function App() {
           exercise={state.exercise}
           onComplete={handleExerciseComplete}
           onBack={handleBack}
+          stream={stream}
+          isListening={isListening}
+          onToggleListening={isListening ? stopMicrophone : requestPermission}
         />
       );
 
