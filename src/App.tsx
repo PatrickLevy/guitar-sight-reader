@@ -12,7 +12,7 @@ type AppState =
 
 function App() {
   const [state, setState] = useState<AppState>({ screen: 'home' });
-  const [maxAttempts, setMaxAttempts] = useState<number>(3);
+  const [maxAttempts, setMaxAttempts] = useState<number>(50);
 
   // Audio state lifted to app level
   const {

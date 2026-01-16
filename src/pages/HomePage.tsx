@@ -53,7 +53,7 @@ export function HomePage({
             </div>
             <div className="flex-1">
               <label htmlFor="max-attempts" className="block text-sm font-medium text-gray-700 mb-1">
-                Attempts per Note
+                Difficulty
               </label>
               <select
                 id="max-attempts"
@@ -62,15 +62,13 @@ export function HomePage({
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm
                            focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value={1}>1 attempt (strict)</option>
-                <option value={2}>2 attempts</option>
-                <option value={3}>3 attempts</option>
-                <option value={5}>5 attempts</option>
-                <option value={10}>10 attempts</option>
-                <option value={0}>Unlimited attempts</option>
+                <option value={0}>Don't mark wrong notes</option>
+                <option value={100}>Easy</option>
+                <option value={50}>Medium</option>
+                <option value={10}>Strict</option>
               </select>
               <p className="text-xs text-gray-500 mt-1">
-                How many wrong notes before moving on
+                How forgiving the scoring is
               </p>
             </div>
           </div>
