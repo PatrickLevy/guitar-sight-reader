@@ -311,7 +311,7 @@ export function ExerciseView({
             incorrectNotes={incorrectNotes}
             attemptingNotes={attemptingNotes}
             width={Math.min(800, window.innerWidth - 64)}
-            height={180}
+            height={220}
           />
         </div>
 

@@ -74,8 +74,9 @@ export function useVexFlow(
     context.setFont('Arial', 10);
 
     // Calculate stave width accounting for clef, key sig, time sig
+    // Position stave lower to leave room for ledger lines below (low guitar notes)
     const staveX = 10;
-    const staveY = 40;
+    const staveY = 10;
     const staveWidth = options.width - 20;
 
     // Create stave
