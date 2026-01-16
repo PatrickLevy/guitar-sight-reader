@@ -97,10 +97,15 @@ export function usePitchDetection(config: PitchDetectionConfig = {}): UsePitchDe
     }
   }, [bufferSize, isActive]);
 
-  const start = useCallback((stream: MediaStream) => {
+  const start = useCallback(async (stream: MediaStream) => {
     // Create audio context - let browser choose optimal sample rate for the device
     const audioContext = new AudioContext();
     audioContextRef.current = audioContext;
+
+    // Resume the context in case it was created in a suspended state
+    if (audioContext.state === 'suspended') {
+      await audioContext.resume();
+    }
 
     const sampleRate = audioContext.sampleRate;
 

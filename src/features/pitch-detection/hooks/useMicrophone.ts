@@ -37,6 +37,8 @@ export function useMicrophone(): UseMicrophoneReturn {
       const allDevices = await navigator.mediaDevices.enumerateDevices();
       const audioInputs = allDevices
         .filter((device) => device.kind === 'audioinput')
+        // Filter out "default" pseudo-devices which don't work reliably on Linux
+        .filter((device) => device.deviceId !== 'default' && !device.deviceId.startsWith('default'))
         .map((device, index) => ({
           deviceId: device.deviceId,
           // Label may be empty if permission not granted yet
@@ -80,7 +82,8 @@ export function useMicrophone(): UseMicrophoneReturn {
     };
 
     // If a specific device is selected, use it
-    if (deviceId) {
+    // Skip "default" pseudo-devices as they don't work well with exact constraint
+    if (deviceId && deviceId !== 'default' && !deviceId.startsWith('default')) {
       audioConstraints.deviceId = { exact: deviceId };
     }
 
